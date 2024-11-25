@@ -1,14 +1,14 @@
 import { addHours, differenceInSeconds } from 'date-fns';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
 import Modal from 'react-modal';
-import DatePicker, {registerLocale} from "react-datepicker";
+import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import es from 'date-fns/locale/es'
-import { useUiStore } from '../../hooks/';
+import { useCalendarStore, useUiStore } from '../../hooks/';
 
 registerLocale('es', es);
 
@@ -28,24 +28,33 @@ Modal.setAppElement('#root');
 
 export const CalendarModal = () => {
 
-  const { isDateModalOpen } = useUiStore();
+  const { isDateModalOpen, closeDateModal } = useUiStore();
+  const { activeEvent } = useCalendarStore();
+
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   const [formValue, setFormValue] = useState({
-    title: 'Diego',
-    notes: 'Toro',
+    title: '',
+    notes: '',
     start: new Date(),
-    end: addHours( new Date(), 2),
+    end: addHours(new Date(), 2),
   })
 
   const titleClass = useMemo(() => {
-    if(!formSubmitted ) return '';
+    if (!formSubmitted) return '';
     return (formValue.title.length > 0)
-      ?''
-      :'is-invalid'
-  }, [formValue.title, formSubmitted])
+      ? ''
+      : 'is-invalid'
+  }, [formValue.title, formSubmitted]);
 
-  const onInputChange = ({target})=> {
+  useEffect(() => {
+    if (activeEvent !== null) {
+      setFormValue({...activeEvent});
+    }
+  }, [activeEvent])
+
+
+  const onInputChange = ({ target }) => {
     setFormValue({
       ...formValue,
       [target.name]: target.value
@@ -60,31 +69,30 @@ export const CalendarModal = () => {
   }
 
   const onCloseModal = () => {
-    console.log('loading modal');
+    closeDateModal();
   }
 
-  const onSubmit = ( event ) => {
+  const onSubmit = (event) => {
     event.preventDefault();
     setFormSubmitted(true);
 
     const difference = differenceInSeconds(formValue.end, formValue.start);
-    console.log(difference);
-    
-    if (isNaN(difference)){
+
+    if (isNaN(difference)) {
       Swal.fire('error dates', 'check dates');
       return;
-    } else if (difference < 0){
+    } else if (difference < 0) {
       Swal.fire('range dates', 'check dates', 'error');
     }
 
-    if(formValue.title.length <= 0 ) return;
+    if (formValue.title.length <= 0) return;
 
     console.log(formValue);
-    
+
     //TODO:
     //close model
     //remove errors screen
-    
+
   }
 
   return (
@@ -103,9 +111,9 @@ export const CalendarModal = () => {
 
         <div className="form-group mb-2">
           <label className=''>Fecha y hora inicio</label><br />
-          <DatePicker 
+          <DatePicker
             selected={formValue.start}
-            onChange={(event) => onDateChanged(event,'start')}
+            onChange={(event) => onDateChanged(event, 'start')}
             className='form-control'
             dateFormat={'Pp'}
             showTimeSelect
@@ -116,10 +124,10 @@ export const CalendarModal = () => {
 
         <div className="form-group mb-2">
           <label>Fecha y hora fin</label><br />
-          <DatePicker 
-          minDate={formValue.start}
+          <DatePicker
+            minDate={formValue.start}
             selected={formValue.start}
-            onChange={(event) => onDateChanged(event,'end')}
+            onChange={(event) => onDateChanged(event, 'end')}
             className='form-control'
             dateFormat={'Pp'}
             showTimeSelect
