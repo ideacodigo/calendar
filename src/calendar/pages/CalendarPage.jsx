@@ -1,7 +1,7 @@
 import { Calendar } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-import { NavBar, CalendarEvent, CalendarModal } from "../";
+import { NavBar, CalendarEvent, CalendarModal, FabAddNew, FabDelete } from "../";
 
 import { localizer, getMessagesEs } from '../../helpers/';
 import { useState } from 'react';
@@ -44,7 +44,6 @@ export const CalendarPage = () => {
   }
 
   const onViewChanged = (event) => {
-    console.log(event);
 
     localStorage.setItem('lastView', event)
   }
@@ -71,6 +70,8 @@ export const CalendarPage = () => {
         onView={onViewChanged}
       />
       <CalendarModal />
+      <FabAddNew />
+      <FabDelete />
 
     </>
   )
